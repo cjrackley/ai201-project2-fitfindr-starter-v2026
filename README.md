@@ -59,24 +59,24 @@
 
 ### `search_listings`
 
-- **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** Searches the wardrobe_schema based on the input provided
+- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" --> 'description' (string), 'size' (string), 'max_price' (float), all optional inputs so all 3 are not needed.
+- **Returns:** list[dict] with possible listing data inside including id, name, category, colors, styletags and notes
+- **When it has nothing:** Returns an empty list
 
 ### `suggest_outfit`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** suggests outfits based on a new item and current wardrobe
+- **Inputs:** 'new_item'(dict), 'wardrobe' (dict)
+- **Returns:** A string with outfit suggestions
+- **When it has nothing:** Returns general styling advice if no inputs are given
 
 ### `create_fit_card`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+- **What it does:** Gives a caption that reads like a social media post caption.
+- **Inputs:** 'outfit' (string), 'new_item'(dict)
+- **Returns:** A String containing a 2-4 sentence caption.
+- **When it has nothing:** returns a descriptive message if no outfit is given.
 
 ---
 
@@ -94,7 +94,7 @@
      function have to be real. -->
 
 **Branch rule:**
-
+" If search_listing returns an empty list, a message is placed in message["error"], not a "no results" message. It hten returns the session and does not run suggest_outfit. If a list is found, take the first dictionary entry and go to the suggest_outfit session.
 **Where it lives:** `agent.py::run_agent`
 
 **How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
