@@ -29,6 +29,7 @@ tool calls and returns a fit card — in at least 4 of 5 tries.
      "my search is a plain keyword match and some phrasings will miss" is a
      real answer. -->
 
+Since we expect matching queries to go through all the tools, it would make sense to have a criterion. It also is unreasonable to keep the target at 5 for 5 because of how often this can run and how many steps it has to go through with one query. 
 ---
 
 ## 2. An impossible query stops before the second tool
@@ -39,6 +40,8 @@ Given a query that matches no listings, the agent stops before calling
 **Why this target:**
 <!-- Why is 5 of 5 reasonable here when criterion 1 isn't? What's different
      about this path? -->
+
+Using all 3 tools on a query with no matches is a big waste of resources. It doesn't make sense to allow even one try to get through because the loss doesn't justify the use.
 
 ---
 
@@ -54,11 +57,11 @@ Given a query that matches no listings, the agent stops before calling
      compares session["selected_item"] against what actually reached
      suggest_outfit is the shape you're after. -->
 
-
+The id of session["selected_item"] is the same id used for the new_item passed to suggest_outfit. 5 of 5 tries
 
 **Why this target:**
 
-
+Since the tools are run one after another, the outputs are used as inputs. That will be the way a state is identified as new or the same carried state from the prior tool. I chose 5 of 5 because without this criteria working properly, the entire loop can fail or give wrong advice/answers.
 
 ---
 
@@ -75,11 +78,11 @@ Given a query that matches no listings, the agent stops before calling
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-
+     Card keeps sentence count below 4. Includes name, price and color. Last sentence can contains words from the item's notes field. 4 of 5 tries
 
 **Why this target:**
 
-
+     Theres a few different checks for this target. Even though a card is supposed to have all requirements, if it is lacking in only 1 field, it can still be a reasonable entry. 
 
 ---
 
@@ -92,11 +95,11 @@ Given a query that matches no listings, the agent stops before calling
      search respects a price ceiling — anything, as long as it names a number
      or an observable outcome. -->
 
-
+When a valid item is given with an empty wardrobe, the card is non-empty and mentions the name, price, color. 5 of 5 tries
 
 **Why this target:**
 
-
+This branch uses a different prompt, giving different results compared to the normal use cases. It won't be used as much, so when it is used it needs to be accurate at all times
 
 ---
 

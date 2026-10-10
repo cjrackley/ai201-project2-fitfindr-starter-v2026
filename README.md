@@ -94,7 +94,7 @@
      function have to be real. -->
 
 **Branch rule:**
-" If search_listing returns an empty list, a message is placed in message["error"], not a "no results" message. It hten returns the session and does not run suggest_outfit. If a list is found, take the first dictionary entry and go to the suggest_outfit session.
+" If search_listing returns an empty list, a message is placed in message["error"], not a "no results" message. It then returns the session and does not run suggest_outfit. If a list is found, take the first dictionary entry and go to the suggest_outfit session.
 **Where it lives:** `agent.py::run_agent`
 
 **How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
