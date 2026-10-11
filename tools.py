@@ -78,8 +78,50 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
-    # TODO: replace this with your implementation
-    return []
+    import re
+
+    def tokens(text: str) -> list[str]:
+        return re.findall(r"[a-z0-9.]+", text.lower())
+
+    # Filler words that would otherwise match listing descriptions and inflate
+    # scores. Pure numbers are dropped too, so "$30" in a query isn't a keyword.
+    stopwords = {
+        "a", "an", "the", "and", "or", "for", "with", "in", "of", "to", "on",
+        "under", "over", "below", "above", "less", "than", "max", "size",
+        "i", "me", "my", "want", "need", "looking", "some", "something",
+    }
+    keywords = {
+        w for w in tokens(description or "")
+        if w not in stopwords and not re.fullmatch(r"[\d.]+", w)
+    }
+    if not keywords:
+        return []
+
+    # Size matches on whole tokens, so "M" matches "S/M" and "M/L" but not
+    # "XL", and "9" matches "US 9" but not "US 8.5".
+    size_tokens = set(tokens(size)) if size else set()
+
+    scored = []
+    for listing in load_listings():
+        if max_price is not None and listing["price"] > max_price:
+            continue
+        if size_tokens and not size_tokens <= set(tokens(listing["size"])):
+            continue
+
+        text = " ".join([
+            listing["title"],
+            listing["description"],
+            listing["category"],
+            " ".join(listing["style_tags"]),
+            " ".join(listing["colors"]),
+            listing["brand"] or "",
+        ])
+        score = len(keywords & set(tokens(text)))
+        if score > 0:
+            scored.append((score, listing))
+
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    return [listing for _, listing in scored[: config.SEARCH_RESULT_LIMIT]]
 
 
 # ── Tool 2: suggest_outfit ────────────────────────────────────────────────────
@@ -112,8 +154,66 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    from generate import ModelUnavailable
+
+    item_text = (
+        f"{new_item.get('title', 'Unnamed item')} "
+        f"({new_item.get('category', 'unknown category')}). "
+        f"Colors: {', '.join(new_item.get('colors') or []) or 'not listed'}. "
+        f"Style: {', '.join(new_item.get('style_tags') or []) or 'not listed'}. "
+        f"Description: {new_item.get('description') or 'none'}"
+    )
+
+    # A missing wardrobe or missing 'items' key takes the empty-wardrobe path.
+    items = (wardrobe or {}).get("items") or []
+
+    if not items:
+        system = (
+            "You are a thrift stylist. The user owns no wardrobe items yet. "
+            "Give general styling advice for the item in 1-2 sentences only. "
+            "Talk only about styling this item. Do not mention any specific "
+            "pieces the user owns."
+        )
+        prompt = f"Item:\n{item_text}"
+        fallback = (
+            f"Style the {new_item.get('title', 'item')} with simple basics in "
+            f"neutral colors so it stays the focus of the outfit."
+        )
+    else:
+        wardrobe_lines = []
+        for piece in items:
+            line = (
+                f"- {piece.get('name', 'Unnamed piece')} "
+                f"({piece.get('category', 'unknown')}; "
+                f"colors: {', '.join(piece.get('colors') or []) or 'not listed'}; "
+                f"style: {', '.join(piece.get('style_tags') or []) or 'not listed'})"
+            )
+            if piece.get("notes"):
+                line += f" Notes: {piece['notes']}"
+            wardrobe_lines.append(line)
+
+        system = (
+            "You are a thrift stylist. Suggest exactly two outfits that pair "
+            "the new item with pieces from the user's wardrobe. Label them "
+            "'Outfit 1:' and 'Outfit 2:'. Each outfit is 1-2 sentences and "
+            "names the wardrobe pieces it uses exactly as they appear in the "
+            "wardrobe list. Use only pieces from that list."
+        )
+        prompt = (
+            f"New item:\n{item_text}\n\n"
+            f"Wardrobe:\n" + "\n".join(wardrobe_lines)
+        )
+        fallback = (
+            f"Outfit 1: Pair the {new_item.get('title', 'item')} with "
+            f"{items[0].get('name', 'a basic from your wardrobe')}."
+        )
+
+    try:
+        response = generate(prompt, system=system)
+    except ModelUnavailable as exc:
+        return f"Couldn't get outfit suggestions right now. {exc}"
+
+    return response.strip() or fallback
 
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
@@ -152,5 +252,45 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    from generate import ModelUnavailable
+
+    title = new_item.get("title", "this item")
+
+    if not outfit or not outfit.strip():
+        return f"No outfit was provided for {title}, so there's no fit card to write."
+
+    # Whole-dollar prices read as "$34", others as "$34.50", so the caption and
+    # a string check in unit 4 agree on how the price is written.
+    price = new_item.get("price")
+    if isinstance(price, (int, float)):
+        price_text = f"${price:.0f}" if float(price).is_integer() else f"${price:.2f}"
+    else:
+        price_text = "an unlisted price"
+    platform = new_item.get("platform") or "a thrift app"
+    colors = ", ".join(new_item.get("colors") or []) or "not listed"
+
+    system = (
+        "You write short social media captions about thrift finds. Write 2-4 "
+        "plain sentences that read like a real post, not a product "
+        "description. Mention the item's title, its price, and the platform "
+        "exactly once each, writing the price exactly as given. Mention at "
+        "least one of the item's colors. Be specific about the vibe of the "
+        "outfit. No emojis and no hashtags."
+    )
+    prompt = (
+        f"Item: {title}\n"
+        f"Price: {price_text}\n"
+        f"Platform: {platform}\n"
+        f"Colors: {colors}\n"
+        f"Style: {', '.join(new_item.get('style_tags') or []) or 'not listed'}\n"
+        f"Description: {new_item.get('description') or 'none'}\n\n"
+        f"Outfit:\n{outfit.strip()}"
+    )
+
+    try:
+        response = generate(prompt, system=system)
+    except ModelUnavailable as exc:
+        return f"Couldn't write a fit card right now. {exc}"
+
+    fallback = f"Found the {title} for {price_text} on {platform} and it's already in rotation."
+    return response.strip() or fallback
