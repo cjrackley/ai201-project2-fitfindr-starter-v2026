@@ -105,10 +105,105 @@ def run_agent(query: str, wardrobe: dict) -> dict:
       • A handler for ModelUnavailable, so a bad key produces a message rather
         than a stack trace. The import is already at the top of this file.
     """
+    import re
+
     session = new_session(query, wardrobe)
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
+    def money(value: float) -> str:
+        return f"${value:.0f}" if float(value).is_integer() else f"${value:.2f}"
+
+    # ── parse (regex) ──
+    # Price: "under $30", "below 30", "max $25.50", or a bare "$30".
+    # Size:  "size M", "size S/M", "size US 9", "size W30".
+    # Whatever is left over is the description.
+    text = query
+    max_price = None
+    price_match = re.search(
+        r"(?:under|below|less than|max|up to)\s*\$?\s*(\d+(?:\.\d+)?)|\$\s*(\d+(?:\.\d+)?)",
+        text, re.I,
+    )
+    if price_match:
+        max_price = float(price_match.group(1) or price_match.group(2))
+        text = text.replace(price_match.group(0), " ")
+
+    size = None
+    size_match = re.search(
+        r"\bsize\s+((?:us|w)\s*\d+(?:\.\d+)?|[a-z0-9]+(?:/[a-z0-9]+)?)",
+        text, re.I,
+    )
+    if size_match:
+        size = size_match.group(1).upper()
+        text = text.replace(size_match.group(0), " ")
+
+    description = " ".join(re.sub(r"[^\w\s'-]", " ", text).split())
+    session["parsed"] = {
+        "description": description,
+        "size": size,
+        "max_price": max_price,
+    }
+
+    # ── loop ──
+    # Each pass runs one step and decides the next one from what it returned.
+    count = 0
+    next_step = "search"
+    while next_step != "done":
+        count += 1
+        trace.check_iterations(count)
+
+        if next_step == "search":
+            parsed = session["parsed"]
+            session["search_results"] = search_listings(
+                parsed["description"],
+                size=parsed["size"],
+                max_price=parsed["max_price"],
+            )
+
+            # THE BRANCH: nothing found means stop here and say what to change.
+            if not session["search_results"]:
+                if not parsed["description"]:
+                    session["error"] = (
+                        f"I couldn't tell what item you want from '{session['query']}'. "
+                        f"Describe the piece, like 'vintage graphic tee' or 'black boots'."
+                    )
+                else:
+                    searched = f"Nothing matched '{parsed['description']}'"
+                    fixes = []
+                    if parsed["size"]:
+                        searched += f" in size {parsed['size']}"
+                        fixes.append("dropping the size")
+                    if parsed["max_price"] is not None:
+                        searched += f" under {money(parsed['max_price'])}"
+                        fixes.insert(0, f"raising your price limit above {money(parsed['max_price'])}")
+                    fixes.append("using broader words (like 'top', 'jeans', or 'jacket')")
+                    if len(fixes) > 1:
+                        fix_text = ", ".join(fixes[:-1]) + ", or " + fixes[-1]
+                    else:
+                        fix_text = fixes[0]
+                    session["error"] = f"{searched}. Try {fix_text}."
+                next_step = "done"
+            else:
+                session["selected_item"] = session["search_results"][0]
+                next_step = "suggest"
+
+        elif next_step == "suggest":
+            session["outfit_suggestion"] = suggest_outfit(
+                session["selected_item"], session["wardrobe"]
+            )
+            if session["outfit_suggestion"].startswith("Couldn't get outfit suggestions"):
+                session["error"] = session["outfit_suggestion"]
+                next_step = "done"
+            else:
+                next_step = "card"
+
+        elif next_step == "card":
+            session["fit_card"] = create_fit_card(
+                session["outfit_suggestion"], session["selected_item"]
+            )
+            if session["fit_card"].startswith("Couldn't write a fit card"):
+                session["error"] = session["fit_card"]
+                session["fit_card"] = None
+            next_step = "done"
+
     return session
 
 
