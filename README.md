@@ -41,7 +41,7 @@
 
 <!-- Three or four sentences: what a user asks for, and what they get back. -->
 
-
+This project allows a user to search through a wardrobe with clothes in it. The user can ask for a number of things, an the agent sorts out the details and runs them through tools that output a few different things. It first finds the most relevent piece of clothing relating to the users' query, then it will give outfit advice followed by a small caption style paragraph detailing the item. 
 
 ---
 
@@ -94,12 +94,12 @@
      function have to be real. -->
 
 **Branch rule:**
-" If search_listing returns an empty list, a message is placed in message["error"], not a "no results" message. It then returns the session and does not run suggest_outfit. If a list is found, take the first dictionary entry and go to the suggest_outfit session.
+" If search_listing returns an empty list, a message is placed in session["error"], not a "no results" message. It then returns the session and does not run suggest_outfit. If a list is found, take the first dictionary entry and go to the suggest_outfit session.
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** Regex. A price after "under", "below", "max", "up to", or a bare "$30" becomes `max_price`. "size M", "size S/M", "size US 9", or "size W30" becomes `size`. Whatever is left becomes `description`.
 
-**What moves through the session:** <!-- which fields, in what order -->
+**What moves through the session:** `query` → `parsed` (description, size, max_price) → `search_results` → `selected_item` (first result) → `outfit_suggestion` → `fit_card`. `wardrobe` is set at the start. `error` is set only when the run stops early, and then the later fields stay `None`.
 
 ---
 
@@ -113,9 +113,22 @@
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask '...'python app.py ask "purple top under $50"
 
 ```
+
+
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   Outfit 1: Pair the Y2K Baby Tee — Butterfly Print with baggy straight-leg jeans, dark wash and chunky white sneakers for a casual streetwear look.
+
+Outfit 2: Style the Y2K Baby Tee — Butterfly Print with wide-leg khaki trousers, brown leather belt, and black combat boots for an edgy earth-toned vibe.
+
+  Fit card: I just scored this Y2K Baby Tee — Butterfly Print on depop for $18 and I am obsessed with the white and pink graphic. I styled it with baggy dark wash straight-leg jeans and chunky white sneakers for a casual streetwear look. It has the best fitted crop length and fits like an absolute dream.
+
+0 model calls this session, 2 served from cache
+
+
 
 **The three tools, tested one at a time**
 
@@ -149,15 +162,15 @@ Scored these blue Vintage Levi's 501 Jeans on depop for $38 and I am obsessed. T
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* When finishing my criteria, I asked claude to find ways it can be tightend and if certain things stated couldn't be tested.
+- *What came back:* It told me I needed to tighten the state criteria and make it less vague
+- *What I changed:* I changed the criteria from tracking output/input to just tracking if the id is carried from one tool to another.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I instructed claude to build the 3 tools within tools.py. Making sure to not allow any editting outside of the file and keeping within the scope of the instructions already within the codeblocks.
+- *What came back:* It gave me the code needed to run the tools effectively
+- *What I changed:* Before completing the code, it asked me to clarify on some things. I made sure that the outfit suggestions would give 2 outfits instead of allowing the model to decide. I also changed how it would handle inputs, instead of trusting that there would always be a non-empty input, it treats missing as an empty wardrobe.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
