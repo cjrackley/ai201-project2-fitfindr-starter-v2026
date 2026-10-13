@@ -192,17 +192,148 @@ Scored these blue Vintage Levi's 501 Jeans on depop for $38 and I am obsessed. T
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. matching query completes | 4 of 5 | PASS | PASS | PASS | PASS |FAIL | MET(4/5) |
+| 2. impossible query stops early | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET(5/5) |
+| 3. selected item carries into suggest_outfit | 5 of 5 | FAIL | PASS | PASS | PASS | PASS | FAIL(4/5) |
+| 4. fit card quality | 4 of 5 | FAIL | PASS | PASS | FAIL | PASS | FAIL(3/5) |
+| 5. empty wardrobe card complete | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET(5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
+**Critera 1 Try**
+
+- stopped early: no
+- selected_item: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+- search_results: 10
+
+Outfit suggestion:
+
+```
+Outfit 1: Balance the Y2K butterfly baby tee with Baggy straight-leg jeans, dark wash and Chunky white sneakers for a classic streetwear silhouette.
+
+Outfit 2: Layer the baby tee under the Vintage black denim jacket and pair it with Wide-leg khaki trousers and Black combat boots for an edgy, contrasting look.
 ```
 
+Fit card:
+
+```
+I just scored this Y2K Baby Tee with Butterfly Print on depop for $18. The white, pink, and purple shades make it super easy to style. I am pairing it with baggy straight-leg jeans and chunky white sneakers for a classic streetwear silhouette.
+```
+
+Trace:
+
+```
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+[2] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: Outfit 1: Balance the Y2K butterfly baby tee with Baggy straight-leg jeans, dark wash and Chunky white sneaker…
+[3] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: I just scored this Y2K Baby Tee with Butterfly Print on depop for $18. The white, pink, and purple shades make…
+```
+
+**Criteria 2 Try**
+
+- stopped early: yes — Nothing matched 'designer ballgown' in size XXS under $5. Try raising your price limit above $5, dropping the size, or using broader words (like 'top', 'jeans', or 'jacket').
+- selected_item: (none)
+- search_results: 0
+
+Trace:
+
+```
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: [] (empty)
+```
+**Criteria 3 Try**
+
+- stopped early: yes — Couldn't get outfit suggestions right now. Couldn't reach the model: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+- selected_item: 90s Track Jacket — Navy/White Stripe ($45.0, poshmark)
+- search_results: 10
+
+Outfit suggestion:
+
+```
+Couldn't get outfit suggestions right now. Couldn't reach the model: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+```
+
+Trace:
+
+```
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 10 items: 90s Track Jacket — Navy/White Stripe, Denim Jacket — Light Wash, Cropped, Vintage Levi's 501 Jeans — Medium Wash … +7 more
+[2] suggest_outfit
+      in:  90s Track Jacket — Navy/White Stripe ($45.0, poshmark)
+      out: Couldn't get outfit suggestions right now. Couldn't reach the model: 503 UNAVAILABLE. {'error': {'code': 503, …
+```
+**Criteria 4 Try**
+
+- stopped early: no
+- selected_item: 90s Silk Slip Dress — Floral, Midi Length ($30.0, depop)
+- search_results: 2
+
+Outfit suggestion:
+
+```
+Outfit 1: Layer the White ribbed tank top underneath the 90s Silk Slip Dress for a casual 90s streetwear vibe, paired with the Chunky white sneakers.
+
+Outfit 2: Throw the Oversized grey crewneck sweatshirt right over the 90s Silk Slip Dress to give the feminine slip a cozy texture contrast, finished with the Black combat boots.
+```
+
+Fit card:
+
+```
+Scored this ivory 90s Silk Slip Dress on depop for $30 and it has the prettiest dusty pink and green floral print. I layered a white ribbed tank underneath and threw on some chunky sneakers for that effortless 90s streetwear look. It is giving major cozy cottagecore vibes without trying too hard.
+```
+
+Trace:
+
+```
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 2 items: 90s Silk Slip Dress — Floral, Midi Length, Silk Button-Down — Sage Green
+[2] suggest_outfit
+      in:  90s Silk Slip Dress — Floral, Midi Length ($30.0, depop)
+      out: Outfit 1: Layer the White ribbed tank top underneath the 90s Silk Slip Dress for a casual 90s streetwear vibe,…
+[3] create_fit_card
+      in:  90s Silk Slip Dress — Floral, Midi Length ($30.0, depop)
+      out: Scored this ivory 90s Silk Slip Dress on depop for $30 and it has the prettiest dusty pink and green floral pr…
+```
+
+**Criteria 5 Try**
+
+- stopped early: no
+- selected_item: Corduroy Wide-Leg Pants — Rust ($32.0, depop)
+- search_results: 2
+
+Outfit suggestion:
+
+```
+Anchor the rich, earthy hue of these high-waisted cords with a tucked-in cream lace blouse and chunky wooden-soled clogs for an effortless 1970s aesthetic. Layer with a fitted knit turtleneck and a cropped corduroy jacket in an olive or mustard tone to play up the autumnal cottagecore texture.
+```
+
+Fit card:
+
+```
+I finally tracked down these Corduroy Wide-Leg Pants over on depop for $32. The gorgeous rust shade brings the ultimate 1970s aesthetic to life, especially when I pair them with a cream lace blouse and chunky clogs. It is the kind of earthy, textured look I live for all autumn long.
+```
+
+Trace:
+
+```
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 2 items: Corduroy Wide-Leg Pants — Rust, Low-Rise Cargo Pants — Khaki
+[2] suggest_outfit
+      in:  Corduroy Wide-Leg Pants — Rust ($32.0, depop)
+      out: Anchor the rich, earthy hue of these high-waisted cords with a tucked-in cream lace blouse and chunky wooden-s…
+[3] create_fit_card
+      in:  Corduroy Wide-Leg Pants — Rust ($32.0, depop)
+      out: I finally tracked down these Corduroy Wide-Leg Pants over on depop for $32. The gorgeous rust shade brings the…
 ```
 
 ---
@@ -254,21 +385,43 @@ that produced it:
 **Happy path**
 
 ```
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 5 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Mesh Long-Sleeve Top — Black … +2 more
+[2] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: Outfit 1: Pair the Y2K Baby Tee — Butterfly Print with baggy straight-leg jeans, dark wash and chunky white sn…
+[3] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: I just scored this Y2K Baby Tee — Butterfly Print on depop for $18 and I am obsessed with the white and pink g…
 
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   Outfit 1: Pair the Y2K Baby Tee — Butterfly Print with baggy straight-leg jeans, dark wash and chunky white sneakers for a casual streetwear look.
+
+Outfit 2: Style the Y2K Baby Tee — Butterfly Print with wide-leg khaki trousers, brown leather belt, and black combat boots for an edgy earth-toned vibe.
+
+  Fit card: I just scored this Y2K Baby Tee — Butterfly Print on depop for $18 and I am obsessed with the white and pink graphic. I styled it with baggy dark wash straight-leg jeans and chunky white sneakers for a casual streetwear look. It has the best fitted crop length and fits like an absolute dream.
+
+0 model calls this session, 2 served from cache
 ```
 
 **Empty search**
 
 ```
+(running with an empty wardrobe)
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: [] (empty)
 
+  I couldn't tell what item you want from '...'. Describe the piece, like 'vintage graphic tee' or 'black boots'.
+
+0 model calls this session
 ```
 
-**On the MCP move:** <!-- what changed in your code, and whether anything
-behaved differently afterwards. If the rewire didn't work, say exactly where it
-broke — the error text and the last thing that worked. That earns the point in
-full. -->
+**On the MCP move:** <!-- what changed in your code, and whether anything behaved differently afterwards. If the rewire didn't work, say exactly where it broke — the error text and the last thing that worked. That earns the point in full. -->
 
-
+The parameter section of the direct call for search_listings had to be tweaked slightly so the system could understand the inputs, otherwise everything worked as intended.
 
 ---
 

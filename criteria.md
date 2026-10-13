@@ -78,7 +78,9 @@ Since the tools are run one after another, the outputs are used as inputs. That 
      sentence? A card longer than a caption anyone would post? Any of those can
      be turned into a number. -->
 
-     Card keeps sentence count below 4. Includes name, price and color. Last sentence can contains words from the item's notes field. 4 of 5 tries
+     ORIGINAL: Card keeps sentence count below 4. Includes name, price and color. Last sentence can contains words from the item's notes field. 4 of 5 tries
+
+     REVISED: Card keeps sentence count at max 4. Includes name, price, color. Last sentence contains at least one word from description; Changed wordring from 'can contain words' to 'contains at least one word' to make it testable.
 
 **Why this target:**
 

@@ -158,6 +158,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
                 "size": parsed["size"],
                 "max_price": parsed["max_price"],
             })
+            trace.step(
+                "search_listings (via MCP)",
+                inputs=parsed,
+                returned=session["search_results"],
+            )
 
             # THE BRANCH: nothing found means stop here and say what to change.
             if not session["search_results"]:
@@ -190,6 +195,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             session["outfit_suggestion"] = suggest_outfit(
                 session["selected_item"], session["wardrobe"]
             )
+            trace.step(
+                "suggest_outfit",
+                inputs=session["selected_item"],
+                returned=session["outfit_suggestion"],
+            )
             if session["outfit_suggestion"].startswith("Couldn't get outfit suggestions"):
                 session["error"] = session["outfit_suggestion"]
                 next_step = "done"
@@ -199,6 +209,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
         elif next_step == "card":
             session["fit_card"] = create_fit_card(
                 session["outfit_suggestion"], session["selected_item"]
+            )
+            trace.step(
+                "create_fit_card",
+                inputs=session["selected_item"],
+                returned=session["fit_card"],
             )
             if session["fit_card"].startswith("Couldn't write a fit card"):
                 session["error"] = session["fit_card"]

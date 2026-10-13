@@ -35,18 +35,33 @@ SCENARIOS = [
         "wardrobe": "empty",
         "criterion": None,
     },
-    # TODO: add what your criteria 3, 4 and 5 need.
-    #
-    # Set "criterion" to the number in criteria.md that the scenario tests.
-    # "criterion": None means a diagnostic run — useful to have, but it isn't
-    # one of your five, and run_eval.py marks it as such in the table.
-    #
-    # For a state criterion, any normal query works — what you're checking is
-    # what ends up in the session, not what the user typed.
-    #
-    # For a fit-card criterion, you probably want the SAME query listed more
-    # than once, or several different items, depending on what your criterion
-    # actually says.
+    {
+        # Criterion 3: state. Several listings match this query (lst_004, lst_007,
+        # lst_010, ...), so if the wrong one gets passed along, the ids won't match.
+        # Check: session["selected_item"]["id"] == the id that reached suggest_outfit.
+        "name": "selected item carries into suggest_outfit",
+        "query": "vintage jacket under $50",
+        "wardrobe": "example",
+        "criterion": 3,
+    },
+    {
+        # Criterion 4: fit card. Same item every run (lst_013) so the 5 cards can be
+        # compared. It has 3 colors and no brand, so it's harder to describe.
+        # Check: under 4 sentences, mentions name, price ($30) and a color.
+        "name": "fit card quality",
+        "query": "silk slip dress",
+        "wardrobe": "example",
+        "criterion": 4,
+    },
+    {
+        # Criterion 5: empty wardrobe. This branch uses a different prompt.
+        # lst_005 has no brand, which is a common way for the card to fail.
+        # Check: card is non-empty and mentions name, price ($32) and color (rust).
+        "name": "empty wardrobe card complete",
+        "query": "corduroy pants under $40",
+        "wardrobe": "empty",
+        "criterion": 5,
+    },
 ]
 
 WARDROBES = ("example", "empty")
