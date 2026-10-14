@@ -172,6 +172,19 @@ Scored these blue Vintage Levi's 501 Jeans on depop for $38 and I am obsessed. T
 - *What came back:* It gave me the code needed to run the tools effectively
 - *What I changed:* Before completing the code, it asked me to clarify on some things. I made sure that the outfit suggestions would give 2 outfits instead of allowing the model to decide. I also changed how it would handle inputs, instead of trusting that there would always be a non-empty input, it treats missing as an empty wardrobe.
 
+
+**Moment 3**
+
+- *What I asked for:* I asked claude to read my criterion and come up with scenarios that could test my criterion.
+- *What came back:* It gave me a list of scenarios that I could use to test my criterion.
+- *What I changed:* I changed the wording of my 4th criterion so that all parts could be tested against the cards outputted.
+
+
+**Moment 4**
+
+- *What I asked for:* After running the first eval of the criteria, I noticed that several of my tests had failed because the model was being overused and caused some of the tests to stop early because of this. I asked claude how I could solve this issue.
+- *What came back:* It gave me 3 options of how I could fix it: Retry 503 errors, use another model, or retry the whole query.
+- *What I change:* I instructed claude to show what the code would look like if I went with the first option, which would only retry the specific tool for a try, rather than the whole try. It gave me an example and I asked for it to update my code with the changes.
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
      Don't fill these in during unit 3.
