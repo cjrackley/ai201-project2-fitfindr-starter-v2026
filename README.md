@@ -433,25 +433,25 @@ The parameter section of the direct call for search_listings had to be tweaked s
      `python run_eval.py --label after` -->
 
 **What I changed:**
-
+I changed the retry condition cover errors caused by overuse of the model.
 **Which failure it was meant to fix:**
-
+It was meant to fix the tries that failed due to overuse of the model.
 ### Run Log — After
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. matching query completes | 4 of 5 | PASS | PASS | PASS | PASS |PASS | MET(5/5) |
+| 2. impossible query stops early | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET(5/5) |
+| 3. selected item carries into suggest_outfit | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET(5/5) |
+| 4. fit card quality | 4 of 5 | FAIL | FAIL | FAIL | PASS | FAIL | FAIL(1/5) |
+| 5. empty wardrobe card complete | 5 of 5 | PASS | PASS | PASS | PASS | PASS | MET(5/5) |
 
 **Did it help, and how do I know:**
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
 
-
+My fix helped, there wasn't a single try that failed due to overuse of the model.
 
 ---
 
@@ -461,7 +461,7 @@ The parameter section of the direct call for search_listings had to be tweaked s
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
 
-
+My 4th criterion, about the content in fit cards, failed its test a different reason than last time. Originally, there had been failures in the criterion because it wouldn't get to the point of creating a fit card. Now that they all completely run, I evaluated the output and found that only 1 passes all specifications of the criterion. I need to tighten the prompt for the card generation to possibly fix this.
 
 <!-- ═════════════════════════════════════════════════════════════════════
 
