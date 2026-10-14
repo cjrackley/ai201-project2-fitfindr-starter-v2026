@@ -358,15 +358,15 @@ Trace:
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1. matching query completes | 4 of 5 | PASS | Met target |
+| 2. impossible query stops early | 5 of 5 | PASS | Met target |
+| 3. selected item carries into suggest_outfit | 5 of 5 | FAIL | Failed 1 try |
+| 4. fit card quality | 4 of 5 | FAIL | Failed 2 tries |
+| 5. empty wardrobe card complete | 5 of 5 | PASS | Met target |
 
 **Diagnoses**
 
-
+All tries that failed occured entirely because the model was delaying the calls due to activity. The 2nd and 3rd tools failed during the delays.
 
 ---
 
